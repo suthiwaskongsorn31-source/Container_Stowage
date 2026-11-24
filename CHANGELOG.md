@@ -1,5 +1,11 @@
 # STOWAGE — Change Log
 
+### v10.27
+- Cargo manifest table is now dynamic: it uses the window width instead of a fixed cap,
+  so at 100% zoom every column and number is visible (no more cut-off right-hand columns).
+  Columns keep a readable minimum width and, when zoomed in or on a narrow window, an
+  always-visible horizontal scrollbar reaches the rest. No packing-engine changes.
+
 ### v10.26
 - Stacking is now always heaviest-on-the-bottom; a heavier piece is never placed on a
   lighter one (left side-by-side instead). New optional "Auto-stack cargo" toggle packs

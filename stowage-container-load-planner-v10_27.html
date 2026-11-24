@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>STOWAGE — Container Load Planner v10.26 (offline)</title>
-<style> body { margin:0; padding:0; background:#EDEAE2; } svg { display:block; width:100%; height:auto; } input[type=number]{ -moz-appearance:textfield; appearance:textfield; } input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; } </style></head>
+<title>STOWAGE — Container Load Planner v10.27 (offline)</title>
+<style> body { margin:0; padding:0; background:#EDEAE2; } svg { display:block; width:100%; height:auto; } input[type=number]{ -moz-appearance:textfield; appearance:textfield; } input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; } .manifest-scroll{ scrollbar-width:auto; scrollbar-color:#B9B2A0 #EFEBE0; } .manifest-scroll::-webkit-scrollbar{ height:12px; width:12px; } .manifest-scroll::-webkit-scrollbar-track{ background:#EFEBE0; border-radius:6px; } .manifest-scroll::-webkit-scrollbar-thumb{ background:#B9B2A0; border-radius:6px; border:2px solid #EFEBE0; } .manifest-scroll::-webkit-scrollbar-thumb:hover{ background:#9C9583; } </style></head>
 <body><div id="root"></div>
 
 
@@ -1657,7 +1657,7 @@ const MIN_SUPPORT_RATIO = 0.8, CSC_POINT_LOAD = 5460 / 284, FR_END_CLEARANCE = 3
   ["8", "5.1"],
   ["3", "4.1"],
   ["2.1", "3"]
-], EPS = 1e-6, APP_VERSION = "10.26", stackCapOf = (item) => {
+], EPS = 1e-6, APP_VERSION = "10.27", stackCapOf = (item) => {
   const v = +(item && item.maxStackKg) || 0;
   return v > 0 ? v : 1 / 0;
 }, contactAreaCm2 = (p) => {
@@ -7646,9 +7646,10 @@ function App() {
       "main",
       {
         style: {
-          maxWidth: 1240,
+          width: "100%",
+          maxWidth: "min(1680px, 98vw)",
           margin: "0 auto",
-          padding: "20px 16px 60px"
+          padding: "20px clamp(10px, 1.6vw, 20px) 60px"
         }
       },
       /* @__PURE__ */ React.createElement(
@@ -7860,6 +7861,7 @@ function App() {
         /* @__PURE__ */ React.createElement(
           "div",
           {
+            className: "manifest-scroll",
             style: {
               overflowX: "auto",
               overflowY: "auto",
@@ -7874,7 +7876,7 @@ function App() {
               style: {
                 borderCollapse: "collapse",
                 width: "100%",
-                minWidth: 860
+                minWidth: 1180
               }
             },
             /* @__PURE__ */ React.createElement(

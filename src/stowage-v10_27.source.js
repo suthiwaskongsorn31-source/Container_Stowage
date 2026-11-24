@@ -938,7 +938,7 @@ const MIN_SUPPORT_RATIO = 0.8,
         ["2.1", "3"]
     ],
     EPS = 1e-6,
-    APP_VERSION = "10.26",
+    APP_VERSION = "10.27",
     stackCapOf = (item) => {
         const v = +(item && item.maxStackKg) || 0;
         return v > 0 ? v : 1 / 0;
@@ -7844,9 +7844,10 @@ function App() {
         React.createElement(
             "main", {
                 style: {
-                    maxWidth: 1240,
+                    width: "100%",
+                    maxWidth: "min(1680px, 98vw)",
                     margin: "0 auto",
-                    padding: "20px 16px 60px"
+                    padding: "20px clamp(10px, 1.6vw, 20px) 60px"
                 }
             },
             /* @__PURE__ */
@@ -8061,6 +8062,7 @@ function App() {
                 /* @__PURE__ */
                 React.createElement(
                     "div", {
+                        className: "manifest-scroll",
                         style: {
                             overflowX: "auto",
                             overflowY: "auto",
@@ -8075,7 +8077,7 @@ function App() {
                             style: {
                                 borderCollapse: "collapse",
                                 width: "100%",
-                                minWidth: 860
+                                minWidth: 1180
                             }
                         },
                         /* @__PURE__ */
