@@ -1,5 +1,10 @@
 # STOWAGE — Change Log
 
+### v10.26
+- Stacking is now always heaviest-on-the-bottom; a heavier piece is never placed on a
+  lighter one (left side-by-side instead). New optional "Auto-stack cargo" toggle packs
+  tighter using the same safe rules.
+
 ### v10.25
 - Cargo input table easier to read: removed number-field spinner arrows and widened
   the numeric columns so 4-digit values (1200, 2950, 5400, 9800) show in full.

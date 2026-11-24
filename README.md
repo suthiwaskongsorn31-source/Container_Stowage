@@ -4,11 +4,11 @@
 cargo is loaded into shipping containers. It is used by **Kintetsu World Express
 (Thailand), Project Sales Division / Land Freight Department** for freight-forwarding work.
 
-> Current version: **v10.25** · Early Access · Developed by *Suthiwas Kongsorn*
+> Current version: **v10.26** · Early Access · Developed by *Suthiwas Kongsorn*
 
 ## Open it
 
-Just **double-click `stowage-container-load-planner-v10_25.html`** — it runs in any
+Just **double-click `stowage-container-load-planner-v10_26.html`** — it runs in any
 modern browser (Chrome / Edge recommended). No install, no server, no internet required;
 nothing leaves the computer.
 
@@ -32,8 +32,8 @@ nothing leaves the computer.
 
 | Path | What it is |
 |---|---|
-| `stowage-container-load-planner-v10_25.html` | The application (open this) |
-| `src/stowage-v10_25.source.js` | Readable (prettified) source of the app script |
+| `stowage-container-load-planner-v10_26.html` | The application (open this) |
+| `src/stowage-v10_26.source.js` | Readable (prettified) source of the app script |
 | `docs/STOWAGE-User-Manual-TH.pdf` | User manual in Thai (คู่มือการใช้งาน), with screenshots |
 | `docs/STOWAGE-v10_25-notes.md` | Release notes for this version |
 

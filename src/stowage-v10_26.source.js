@@ -298,6 +298,7 @@ const BEDDING_MAX_EXTEND = 1e3,
     itemIsOOG = (it, spec) => it.oog === !0 || it.H > (spec ? spec.H : GP_H) || Math.min(it.L, it.W) > (spec ? spec.W : GP_W);
 let SPACING_TOLERANCE = 0,
     DOOR_CLEARANCE = 282,
+    AUTO_STACK = false,
     LASH_BOOST = 0,
     ANTI_SLIP = !1,
     FORK_ID = "5t",
@@ -937,7 +938,7 @@ const MIN_SUPPORT_RATIO = 0.8,
         ["2.1", "3"]
     ],
     EPS = 1e-6,
-    APP_VERSION = "10.25",
+    APP_VERSION = "10.26",
     stackCapOf = (item) => {
         const v = +(item && item.maxStackKg) || 0;
         return v > 0 ? v : 1 / 0;
@@ -1147,11 +1148,12 @@ class Engine {
                     xx = endClamp ? Math.min(Math.max(x, endClamp), this.spec.L - endClamp - l) : x;
                 if (!this.inside(xx, yy, z, l, w, h) || this.overlaps(xx, yy, z, l, w, h)) continue;
                 const s = this.support(xx, yy, z, l, w);
-                if (!s.ok || s.sup.some((p) => !p.item.stack || p.oog)) continue;
+                if (!s.ok || s.sup.some((p) => !effStack(p.item) || p.oog)) continue;
+                if (z > EPS && s.sup.some((p) => it.kg > p.item.kg + 0.5)) continue;
                 if (z > EPS) {
                     const layersBelow = 1 + s.sup.reduce((mx2, p) => Math.max(mx2, p.stackLayer || 1), 0) - 1,
-                        capBelow = Math.min(...s.sup.map((p) => p.item.maxLayers || 99)),
-                        capSelf = it.maxLayers || 99;
+                        capBelow = Math.min(...s.sup.map((p) => effLayers(p.item))),
+                        capSelf = effLayers(it);
                     if (layersBelow + 1 > Math.min(capBelow, capSelf) || !this.stackLoadOk(s.sup, s.areas, it.kg)) continue;
                 }
                 if (!this.segOk(it, xx, yy, l, w) || !this.lifoOk(it, xx)) continue;
@@ -1479,6 +1481,8 @@ function offsetConstrainedPack(eng, units, axle) {
     return eng.placed.length;
 }
 const STACK_TOL = 120;
+function effStack(it){ return !!(it && (it.stack || AUTO_STACK)); }
+function effLayers(it){ if(!it) return 1; if(it.stack) return it.maxLayers || 99; return AUTO_STACK ? 3 : 1; }
 
 function assembleStacks(units, spec) {
     const pool = units.map((u, i) => ({
@@ -1498,12 +1502,12 @@ function assembleStacks(units, spec) {
             (a, b) => b.it.drop - a.it.drop || area(b.it) - area(a.it) || b.it.kg - a.it.kg
         );
     for (const base of order) {
-        if (used.has(base.i) || !base.it.stack || (base.it.maxLayers || 1) <= 1) continue;
+        if (used.has(base.i) || !effStack(base.it) || effLayers(base.it) <= 1) continue;
         used.add(base.i);
         const parts = [__spreadProps2(__spreadValues2({}, base), {
                 z: 0
             })],
-            maxLay = Math.max(1, base.it.maxLayers || 1);
+            maxLay = Math.max(1, effLayers(base.it));
         let h = base.it.H,
             kg = base.it.kg;
         for (; !(parts.length >= maxLay);) {
@@ -1513,7 +1517,7 @@ function assembleStacks(units, spec) {
                     Math.max(0, top.L - fpL) + Math.max(0, top.W - fpW),
                     Math.max(0, top.W - fpL) + Math.max(0, top.L - fpW)
                 ),
-                cand = order.filter((c) => !used.has(c.i) && c.it.drop === base.it.drop).filter((c) => fitsOn(c.it, base.it)).filter((c) => h + c.it.H <= spec.H).filter((c) => crushOk([...parts, {
+                cand = order.filter((c) => !used.has(c.i) && c.it.drop === base.it.drop).filter((c) => fitsOn(c.it, base.it)).filter((c) => h + c.it.H <= spec.H).filter((c) => c.it.kg <= parts[parts.length - 1].it.kg + 0.5).filter((c) => crushOk([...parts, {
                     it: c.it
                 }])).sort((a, b) => growOf(a.it) - growOf(b.it) || area(b.it) - area(a.it) || b.it.kg - a.it.kg)[0];
             if (!cand) break;
@@ -1540,7 +1544,7 @@ function assembleStacks(units, spec) {
                 inversions = (arr) => arr.reduce((t, r, i) => t + (i && r.it.kg > arr[i - 1].it.kg ? 1 : 0), 0),
                 hOf = (arr) => arr.reduce((t, r) => t + r.it.H, 0),
                 kgOf = (arr) => arr.reduce((t, r) => t + r.it.kg, 0),
-                okArr = (arr) => crushOk(arr) && hOf(arr) <= spec.H && arr.length <= Math.max(1, Math.min(...arr.map((r) => r.it.maxLayers || 1))) && arr.every((r, i) => i === 0 || fitsOn(r.it, arr[i - 1].it)),
+                okArr = (arr) => crushOk(arr) && hOf(arr) <= spec.H && inversions(arr) === 0 && arr.length <= Math.max(1, Math.min(...arr.map((r) => effLayers(r.it)))) && arr.every((r, i) => i === 0 || fitsOn(r.it, arr[i - 1].it)),
                 costOf = (list) => {
                     const hs = list.map(hOf),
                         ks = list.map(kgOf);
@@ -7534,7 +7538,7 @@ function App() {
         B: "",
         rearMax: "",
         frontMax: ""
-    }), [showRates, setShowRates] = useState(!1), [floorType, setFloorType] = useState("wooden"), [spacing, setSpacing] = useState(0), [doorClear, setDoorClear] = useState(282), [autoRepack, setAutoRepack] = useState(!0), [viewLayer, setViewLayer] = useState(0), [showSecuring, setShowSecuring] = useState(!1), [securingItem, setSecuringItem] = useState(null), [lashMethod, setLashMethod] = useState("auto"), [lashBoost, setLashBoost] = useState(0), [antiSlip, setAntiSlip] = useState(!1), [craneId, setCraneId] = useState("auto"), [craneStandoff, setCraneStandoff] = useState(4), [ltmModel, setLtmModel] = useState(""), [boomCfg, setBoomCfg] = useState("T"), [windMs, setWindMs] = useState(0), [varioBasePct, setVarioBasePct] = useState(100), [varioBallast, setVarioBallast] = useState("standard"), [tandemMode, setTandemMode] = useState("L"), [loadMethod, setLoadMethod] = useState("auto"), [forkId, setForkId] = useState("auto"), [pdfBusy, setPdfBusy] = useState(!1), [rateVer, setRateVer] = useState(0), [rates, setRates] = useState(
+    }), [showRates, setShowRates] = useState(!1), [floorType, setFloorType] = useState("wooden"), [spacing, setSpacing] = useState(0), [doorClear, setDoorClear] = useState(282), [autoStack, setAutoStack] = useState(!1), [autoRepack, setAutoRepack] = useState(!0), [viewLayer, setViewLayer] = useState(0), [showSecuring, setShowSecuring] = useState(!1), [securingItem, setSecuringItem] = useState(null), [lashMethod, setLashMethod] = useState("auto"), [lashBoost, setLashBoost] = useState(0), [antiSlip, setAntiSlip] = useState(!1), [craneId, setCraneId] = useState("auto"), [craneStandoff, setCraneStandoff] = useState(4), [ltmModel, setLtmModel] = useState(""), [boomCfg, setBoomCfg] = useState("T"), [windMs, setWindMs] = useState(0), [varioBasePct, setVarioBasePct] = useState(100), [varioBallast, setVarioBallast] = useState("standard"), [tandemMode, setTandemMode] = useState("L"), [loadMethod, setLoadMethod] = useState("auto"), [forkId, setForkId] = useState("auto"), [pdfBusy, setPdfBusy] = useState(!1), [rateVer, setRateVer] = useState(0), [rates, setRates] = useState(
         () => Object.fromEntries(SPECS.map((s) => [s.code, {
             freight: s.freight,
             handling: s.handling
@@ -7578,7 +7582,7 @@ function App() {
                 };
             }), SPECS.forEach((s) => {
                 ["GP", "HC", "OT"].includes(s.fam) && (s.floor = floorType);
-            }), SPACING_TOLERANCE = Math.max(0, +spacing || 0), DOOR_CLEARANCE = Math.max(0, +doorClear || 0);
+            }), SPACING_TOLERANCE = Math.max(0, +spacing || 0), DOOR_CLEARANCE = Math.max(0, +doorClear || 0), AUTO_STACK = !!autoStack;
             const clean = items.map(
                     (it) => __spreadProps(__spreadValues({}, it), {
                         L: +it.L || 1,
@@ -8016,6 +8020,13 @@ function App() {
                                 style: { width: 64, padding: "6px", border: "1px solid #C9C2B4", borderRadius: 4, fontSize: 13, fontFamily: "inherit" }
                             }),
                             "mm"),
+                        /* @__PURE__ */
+                        React.createElement("label", {
+                            style: { display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: autoStack ? "#1B2430" : "#5A6472", cursor: "pointer" },
+                            title: "ON: the optimiser may stack any cargo to pack tighter — always heaviest on the bottom, a lighter piece never carries a heavier one, and a stack never exceeds the container height. OFF (default): only pieces you ticked Stack are stacked. Note: stacking assumes the lower piece can bear the weight above it — set Top load kg on fragile items, and verify on site."
+                        },
+                            React.createElement("input", { type: "checkbox", checked: autoStack, onChange: (e) => setAutoStack(e.target.checked) }),
+                            "Auto-stack cargo"),
                         /* @__PURE__ */
                         React.createElement(
                             "button", {
